@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>that2dollar</name>
+    </assembly>
+    <members>
+        <member name="T:that2dollar.Controllers.rate2usdController">
+            <summary>
+            API is designed to control and update the ratios 
+            of currencies to USD and to each other
+            </summary>
+        </member>
+        <member name="M:that2dollar.Controllers.rate2usdController.GetRates">
+            <summary>
+            Get a list of the of currencies to USD ratio 
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:that2dollar.Controllers.rate2usdController.GetRateToUsd(System.String)">
+            <summary>
+            Get the ratio of currency to USD actual for the last hour
+            </summary>
+            <param name="code"> currency code (ILS)</param>
+            <returns></returns>
+        </member>
+        <member name="M:that2dollar.Controllers.rate2usdController.GetRatioForPair(System.String,System.String)">
+            <summary>
+            Get the ratio of two currencies From / To actual for the last hour
+            </summary>
+            <param name="from"> currency code (EUR)</param>
+            <param name="to"> currency code (JPY)</param>
+            <returns></returns>
+        </member>
+        <member name="M:that2dollar.Controllers.rate2usdController.DeleteRateToUsd(System.String)">
+            <summary>
+            Remove ratio from service 
+            </summary>
+            <param name="code"> currency code - 3 letters for example EUR</param>
+            <returns></returns>
+        </member>
+        <member name="M:that2dollar.Services.RatesService.TryInit">
+            <summary>
+            Async read of 
+            </summary>
+        </member>
+    </members>
+</doc>

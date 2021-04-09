@@ -17,7 +17,7 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
-    "that2ollar": {
+    "that2dollar": {
       "commandName": "Project",
       "launchBrowser": true,
       "launchUrl": "swagger",

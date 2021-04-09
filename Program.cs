@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace that2ollar
+namespace that2dollar
 {
     public class Program
     {

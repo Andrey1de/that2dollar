@@ -104,9 +104,11 @@ namespace that2dollar.Controllers
         public async Task<IActionResult> DeleteRateToUsd(string code)
         {
             code = code.ToUpper();
+           
             var rateToUsd = await _context.Rates.FindAsync(code);
             if (rateToUsd == null)
             {
+                HttpRequest req = Request;
                 return NotFound();
             }
 

@@ -40,6 +40,7 @@ namespace that2dollar
 
             }, ServiceLifetime.Transient);
 
+            services.AddScoped<IHttpSpooler, HttpSpooler>();
             services.AddScoped<IRatesService, RatesService>();
 
 

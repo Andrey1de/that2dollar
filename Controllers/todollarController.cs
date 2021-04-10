@@ -11,16 +11,16 @@ namespace that2dollar.Controllers
 {
     /// <summary>
     /// API is designed to control and update the ratios 
-    /// of currencies to USD and to each other
+    /// of currencies to USD 
     /// </summary>
     [Route("api/[controller]")]
     [ApiController]
-    public class rate2usdController : ControllerBase
+    public class todollarController : ControllerBase
     {
 
         IRatesService Srv;
         //ToUsdContext Context;
-        public rate2usdController(//ToUsdContext context,
+        public todollarController(//ToUsdContext context,
             IRatesService srv)
         {
             Srv = srv;// = context;

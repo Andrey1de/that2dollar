@@ -31,18 +31,19 @@ namespace that2dollar
                        .AllowAnyMethod()
                        .AllowAnyHeader();
             }));
-
+            
             services.AddHttpClient();
+           
 
-
-            services.AddDbContext<ToUsdContext>(options => {
+            services.AddDbContext<CommonDBContext>(options => {
                 /// opt.UseInMemoryDatabase(databaseName: "database_name");
 
             }, ServiceLifetime.Transient);
 
           //  services.AddScoped<IHttpSpooler, HttpSpooler>();
             services.AddScoped<IRatesService, RatesService>();
-
+            services.AddScoped<IGlobalQuotesService, GlobalQuotesService>();
+            
 
             services.AddControllers().AddJsonOptions(option =>
             option.JsonSerializerOptions.PropertyNamingPolicy

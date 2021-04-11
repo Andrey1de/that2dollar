@@ -1,11 +1,5 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using that2dollar.Data;
 using that2dollar.Models;
 using that2dollar.Services;
 
@@ -51,7 +45,7 @@ namespace that2dollar.Controllers
         /// <summary>
         /// Get the ratio of currency to USD actual for the last hour
         /// </summary>
-        /// <param name="code"> currency code (ILS)</param>
+        /// <param name="code"> currency Code (ILS)</param>
         /// <returns></returns>
         // GET: api/RateToUsd/5
         [HttpGet("{code}")]
@@ -71,8 +65,8 @@ namespace that2dollar.Controllers
         /// <summary>
         /// Get the ratio of two currencies From / To actual for the last hour
         /// </summary>
-        /// <param name="from"> currency code (EUR)</param>
-        /// <param name="to"> currency code (JPY)</param>
+        /// <param name="from"> currency Code (EUR)</param>
+        /// <param name="to"> currency Code (JPY)</param>
         /// <returns></returns>
         [HttpGet("{from}/{to}")]
         public async Task<ActionResult<FromTo>>
@@ -93,7 +87,7 @@ namespace that2dollar.Controllers
         /// <summary>
         /// Remove ratio from service 
         /// </summary>
-        /// <param name="code"> currency code - 3 letters for example EUR</param>
+        /// <param name="code"> currency Code - 3 letters for example EUR</param>
         /// <returns></returns>
         [HttpDelete("{code}")]
         public async Task<IActionResult> DeleteRateToUsd(string code)
@@ -111,19 +105,19 @@ namespace that2dollar.Controllers
 
         //private bool RateToUsdExists(string id)
         //{
-        //    return _context.Rates.Any(e => e.code == id);
+        //    return _context.Rates.Any(e => e.Code == id);
         //}
         /////// <summary>
         ///// 
         ///// </summary>
-        ///// <param name="code"></param>
+        ///// <param name="Code"></param>
         ///// <param name="rateToUsd"></param>
         ///// <returns></returns>
         //// PUT: api/RateToUsd/RUB
-        //[HttpPut("{code}")]
-        //public async Task<IActionResult> PutRateToUsd(string code, RateToUsd rateToUsd)
+        //[HttpPut("{Code}")]
+        //public async Task<IActionResult> PutRateToUsd(string Code, RateToUsd rateToUsd)
         //{
-        //    if (code != rateToUsd.code)
+        //    if (Code != rateToUsd.Code)
         //    {
         //        return BadRequest();
         //    }
@@ -136,7 +130,7 @@ namespace that2dollar.Controllers
         //    }
         //    catch (DbUpdateConcurrencyException)
         //    {
-        //        if (!RateToUsdExists(code))
+        //        if (!RateToUsdExists(Code))
         //        {
         //            return NotFound();
         //        }
@@ -160,7 +154,7 @@ namespace that2dollar.Controllers
         //    }
         //    catch (DbUpdateException)
         //    {
-        //        if (RateToUsdExists(rateToUsd.code))
+        //        if (RateToUsdExists(rateToUsd.Code))
         //        {
         //            return Conflict();
         //        }
@@ -170,7 +164,7 @@ namespace that2dollar.Controllers
         //        }
         //    }
 
-        //    return CreatedAtAction("GetRateToUsd", new { id = rateToUsd.code }, rateToUsd);
+        //    return CreatedAtAction("GetRateToUsd", new { id = rateToUsd.Code }, rateToUsd);
         //}
 
         //// DELETE: api/RateToUsd/RUB

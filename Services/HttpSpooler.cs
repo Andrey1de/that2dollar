@@ -62,7 +62,7 @@ namespace that2dollar.Services
             SpoolItem<T> item = null;
             if (Dict.TryGetValue(key, out item))
             {
-                if (item.ActualUntil >= DateTime.Now)
+                if (item.ActualUntil <= DateTime.Now)
                 {
                     Dict.TryRemove(key,out item);
                     item = null;
@@ -99,7 +99,7 @@ namespace that2dollar.Services
 
 
                 item.Data =  decoder(key,jsonBody);
-
+     
                 return item.Data;
             }
             catch (Exception ex)

@@ -11,42 +11,42 @@ namespace that2dollar.Models
     public partial class RateToUsd
     {
         /// <summary>
-        /// 3 Letters currency code (GBP)
+        /// 3 Letters currency Code (GBP)
         /// </summary>
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.None)]
-        public  string code { get; set; }
+        public  string Code { get; set; }
         /// <summary>
         /// Nsme of currency 
         /// </summary>
-        public  string name { get; set; }
+        public  string Name { get; set; }
         /// <summary>
         /// Rate to USA dollar
         /// </summary>
-        public  double rate { get; set; }
+        public  double Rate { get; set; }
         /// <summary>
         /// Bid rate
         /// </summary>
-        public  double bid { get; set; }
+        public  double Bid { get; set; }
         /// <summary>
         /// Ask rate
         /// </summary>
-        public   double ask { get; set; }
+        public   double Ask { get; set; }
        /// <summary>
        /// Time when rate was stored
        /// </summary>
-        public   DateTime stored { get; set; }
-        public   DateTime lastRefreshed { get; set; }
+        public   DateTime Stored { get; set; }
+        public   DateTime LastRefreshed { get; set; }
 
     }
 
     public class FromTo
     {
-        public RateToUsd from { get; set; }
-        public RateToUsd to { get; set; }
+        public RateToUsd From { get; set; }
+        public RateToUsd To { get; set; }
 
-        public double ratio =>
-            (from != null & to != null && to.rate != 0) ? from.rate / to.rate : 0;
+        public double Ratio =>
+            (From != null & To != null && To.Rate != 0) ? From.Rate / To.Rate : 0;
 
 
     }

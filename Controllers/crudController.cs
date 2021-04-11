@@ -14,9 +14,9 @@ namespace that2dollar.Controllers
     [ApiController]
     public class crudController : ControllerBase
     {
-        private readonly ToUsdContext _context;
+        private readonly CommonDBContext _context;
 
-        public crudController(ToUsdContext context)
+        public crudController(CommonDBContext context)
         {
             _context = context;
         }
@@ -48,7 +48,7 @@ namespace that2dollar.Controllers
         public async Task<IActionResult> PutRateToUsd(string code, RateToUsd rateToUsd)
         {
             code = code.ToUpper();
-            if (code != rateToUsd.code)
+            if (code != rateToUsd.Code)
             {
                 return BadRequest();
             }
@@ -86,7 +86,7 @@ namespace that2dollar.Controllers
             }
             catch (DbUpdateException)
             {
-                if (RateToUsdExists(rateToUsd.code))
+                if (RateToUsdExists(rateToUsd.Code))
                 {
                     return Conflict();
                 }
@@ -96,7 +96,7 @@ namespace that2dollar.Controllers
                 }
             }
 
-            return CreatedAtAction("GetRateToUsd", new { code = rateToUsd.code }, rateToUsd);
+            return CreatedAtAction("GetRateToUsd", new { code = rateToUsd.Code }, rateToUsd);
         }
 
         // DELETE: api/Crud/5
@@ -120,7 +120,7 @@ namespace that2dollar.Controllers
 
         private bool RateToUsdExists(string code)
         {
-            return _context.Rates.Any(e => e.code == code);
+            return _context.Rates.Any(e => e.Code == code);
         }
     }
 }

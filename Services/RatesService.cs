@@ -24,24 +24,21 @@ namespace that2dollar.Services
         //public string ConvertorUrl { get; }
         //public Task TryInit();
         //public RateToUsd[] AllData { get; }
-        //public Task<RateToUsd> GetItem(string code);
+        //public Task<RateToUsd> GetItem(string Code);
         //public Task<FromTo> GetRatioForPair(string from, string to);
         //public HttpClient PrepareHttpClient(HttpClient _httpClient);
 
-        //public Task<bool> RemoveItem(string code);
+        //public Task<bool> RemoveItem(string Code);
     }
     public class RatesService : IRatesService, IDisposable
     {
         const bool TO_STORE = false;//TBD from env
         public readonly string DefaultCurrencyPairs = "EUR,GBP,JPY,ILS";
 
-        const string alphavantage_secret_0 = "55Y1508W05UYQN3G";
-        const string alphavantage_secret_1 = "3MEYVIGY6HV9QYMI";
-
         readonly HttpSpooler<RateToUsd> Spooler;
 
         public HttpClient Client { get; private set; }
-        public readonly ToUsdContext Context;// { get; private set; }
+        public readonly CommonDBContext Context;// { get; private set; }
         private readonly ILogger<RatesService> Log;
 
 
@@ -50,7 +47,7 @@ namespace that2dollar.Services
 
       
 
-        public RatesService(ToUsdContext context,HttpClient _httpClient,
+        public RatesService(CommonDBContext context,HttpClient _httpClient,
                             ILogger<RatesService> logger)//,
                                                          //   IConfiguration config)
         {
@@ -86,21 +83,21 @@ namespace that2dollar.Services
             }
 
             RateToUsd ret = new RateToUsd();
-            ret.code = code;
+            ret.Code = code;
 
 
-            if (string.IsNullOrWhiteSpace(ret.code)
-                || ret.code != code)
+            if (string.IsNullOrWhiteSpace(ret.Code)
+                || ret.Code != code)
             {
                 return null;
             }
 
-            ret.name = f1(arrr[2]);
-            ret.rate = Double.Parse(f1(arrr[3]));
-            ret.lastRefreshed = DateTime.Parse(f1(arrr[4]));
-            ret.ask = Double.Parse(f1(arrr[5]));
-            ret.bid = Double.Parse(f1(arrr[6]));
-            ret.stored = DateTime.Now;
+            ret.Name = f1(arrr[2]);
+            ret.Rate = Double.Parse(f1(arrr[3]));
+            ret.LastRefreshed = DateTime.Parse(f1(arrr[4]));
+            ret.Ask = Double.Parse(f1(arrr[5]));
+            ret.Bid = Double.Parse(f1(arrr[6]));
+            ret.Stored = DateTime.Now;
 
 
             return ret;
@@ -132,9 +129,9 @@ namespace that2dollar.Services
 
             return new SpoolItem<RateToUsd>()
             {
-                Key = rate.code,
+                Key = rate.Code,
                 Data = rate,
-                ActualUntil = rate.lastRefreshed.AddSeconds(MaxReadDelaySec)
+                ActualUntil = rate.LastRefreshed.AddSeconds(MaxReadDelaySec)
 
             };
         }
@@ -149,7 +146,7 @@ namespace that2dollar.Services
 
                 await Context.Rates.ForEachAsync(rate =>
                 {
-                    Spooler.TryAddValue(rate.code, rate);
+                    Spooler.TryAddValue(rate.Code, rate);
                 });
 
             }
@@ -208,8 +205,8 @@ namespace that2dollar.Services
                 }
                 var ret = new FromTo()
                 {
-                    from = arr[0],
-                    to = arr[1],
+                    From = arr[0],
+                    To = arr[1],
 
                 };
 
@@ -258,7 +255,7 @@ namespace that2dollar.Services
             }
             lock (_lockStore)
             {
-                var b = Context.Rates.Any(p => p.code.ToUpper() == rate.code.ToUpper());
+                var b = Context.Rates.Any(p => p.Code.ToUpper() == rate.Code.ToUpper());
                 if (!b)
                 {
                     Context.Rates.Add(rate);
@@ -294,7 +291,7 @@ namespace that2dollar.Services
             {
                 string url = ConvertorUrl + code;
 
-                string url0 = url + "&apikey=" + alphavantage_secret_0;
+                string url0 = url + "&apikey=" + Secrets.ADVANTAGE_SECRET_0;
 
                
 
@@ -302,7 +299,7 @@ namespace that2dollar.Services
 
                 if (body == null)
                 {
-                    string url1 = url + "&apikey=" + alphavantage_secret_1;
+                    string url1 = url + "&apikey=" + Secrets.ADVANTAGE_SECRET_1;
 
                     body = await Spooler.GetHttpWithSpool(code, url1, MaxReadDelaySec,DecodeBody);
                 }

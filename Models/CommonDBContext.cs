@@ -5,18 +5,20 @@ using Microsoft.EntityFrameworkCore;
 namespace that2dollar.Data
 {
 
-    public class ToUsdContext : DbContext
+    public class CommonDBContext : DbContext
     {
 
     
-        public ToUsdContext(DbContextOptions<ToUsdContext> options)
+        public CommonDBContext(DbContextOptions<CommonDBContext> options)
             : base(options)
         {
         }
 
-    
+
         public DbSet<RateToUsd> Rates { get; set; }
-          
+        //public DbSet<RateToUsd> Rates { get; set; }
+        public DbSet<GlobalQuote> GlobalQuotes { get; set; }
+
         protected override void OnConfiguring(DbContextOptionsBuilder options)
         {
             _ = options.UseSqlite("Data Source=./db/tousd.sqlite");
@@ -28,24 +30,24 @@ namespace that2dollar.Data
 
                 entity.ToTable("RateUsd", "toUSD");
 
-                entity.HasKey(e => e.code)
+                entity.HasKey(e => e.Code)
                     .HasName("PK_CODE");
 
-                entity.Property(e => e.name)
+                entity.Property(e => e.Name)
                     .HasColumnName("name")
                     .HasColumnType("varchar")
                     .HasMaxLength(30);
 
 
-                entity.Property(e => e.rate)
+                entity.Property(e => e.Rate)
                     .HasColumnName("rate");
-                entity.Property(e => e.bid)
+                entity.Property(e => e.Bid)
                      .HasColumnName("bid");
-                entity.Property(e => e.ask)
+                entity.Property(e => e.Ask)
                      .HasColumnName("ask");
-                entity.Property(e => e.stored)
+                entity.Property(e => e.Stored)
                      .HasColumnName("stored");
-                entity.Property(e => e.lastRefreshed)
+                entity.Property(e => e.LastRefreshed)
                      .HasColumnName("lastRefreshed");
             });
 

@@ -1,6 +1,5 @@
 ﻿using that2dollar.Data;
 using that2dollar.Models;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Concurrent;
@@ -9,29 +8,60 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Threading;
-using System.Net;
-using that2dollar.Models;
-using that2dollar.Data;
 using System.Net.Http.Headers;
 
 namespace that2dollar.Services
 {
 
 
-    public class RatesServiceDecoder : ISpoolDecoder
+
+    public interface IRatesService : ISpooledService<RateToUsd>
     {
+        public  Task<FromTo> GetRatioForPair(string from, string to);
+        //public HttpClient Client { get;  }
+
+        //public string ConvertorUrl { get; }
+        //public Task TryInit();
+        //public RateToUsd[] AllData { get; }
+        //public Task<RateToUsd> GetItem(string code);
+        //public Task<FromTo> GetRatioForPair(string from, string to);
+        //public HttpClient PrepareHttpClient(HttpClient _httpClient);
+
+        //public Task<bool> RemoveItem(string code);
+    }
+    public class RatesService : IRatesService, IDisposable
+    {
+        const bool TO_STORE = false;//TBD from env
+        public readonly string DefaultCurrencyPairs = "EUR,GBP,JPY,ILS";
+
+        const string alphavantage_secret_0 = "55Y1508W05UYQN3G";
+        const string alphavantage_secret_1 = "3MEYVIGY6HV9QYMI";
+
+        readonly HttpSpooler<RateToUsd> Spooler;
+
+        public HttpClient Client { get; private set; }
+        public readonly ToUsdContext Context;// { get; private set; }
         private readonly ILogger<RatesService> Log;
 
-        readonly string Code;
-     
-        public RatesServiceDecoder(string _code , ILogger<RatesService> _log)
+
+    
+        public int MaxReadDelaySec { get; init; } = 3600;//TBD from  env
+
+      
+
+        public RatesService(ToUsdContext context,HttpClient _httpClient,
+                            ILogger<RatesService> logger)//,
+                                                         //   IConfiguration config)
         {
-            Code = _code;
-            Log = _log;
+            Client = _httpClient;
+            Log = logger;
+            Context = context;
+            Spooler = new HttpSpooler<RateToUsd>(Log, Client, ToSpoolItem);
+         
         }
-        public object DecodeBody(string jsonBody)
+
+        public  RateToUsd DecodeBody(string code, string jsonBody)
         {
             if (!jsonBody.Contains("1. From_Currency Code"))
             {
@@ -39,7 +69,7 @@ namespace that2dollar.Services
                 return null;
             }
             string[] pars1 = new string[] {
-                    "\"3. To_Currency Code\"",
+                    "\"3. To_Currency Code\":",
                     "\"4. To_Currency Name\":",
                     "\"5. Exchange Rate\":",
                     "\"6. Last Refreshed\":",
@@ -49,18 +79,18 @@ namespace that2dollar.Services
             string[] arrr = jsonBody.Split(pars1, StringSplitOptions.RemoveEmptyEntries);
 
             var code1 = f1(arrr[1]).ToUpper();
-            if (arrr == null || arrr.Length < 7 || code1 != Code)
+            if (arrr == null || arrr.Length < 7 || code1 != code)
             {
                 Log.LogWarning($"DecodeBody : Error of Parsing= [{arrr}]");
                 return null;
             }
 
             RateToUsd ret = new RateToUsd();
-            ret.code = Code;
+            ret.code = code;
 
 
             if (string.IsNullOrWhiteSpace(ret.code)
-                || ret.code != Code)
+                || ret.code != code)
             {
                 return null;
             }
@@ -84,61 +114,32 @@ namespace that2dollar.Services
             return strRet ?? "";
         }
 
-
-    }
-    public interface IRatesService
-    {
-        string ConvertorName { get; }
-        Task TryInit();
-        RateToUsd[] Rates { get; }
-        Task<RateToUsd> GetRatio(string code);
-        Task<FromTo> GetRatioForPair(string from, string to);
-
-        Task<bool> Remove(string code);
-    }
-    public class RatesService : IRatesService, IDisposable
-    {
-        public readonly string DefaultCurrencyPairs = "EUR,GBP,JPY,ILS";
-
-        const string alphavantage_secret_0 = "55Y1508W05UYQN3G";
-        const string alphavantage_secret_1 = "3MEYVIGY6HV9QYMI";
-
-
-        readonly HttpClient Client;
-        public readonly ToUsdContext Context;// { get; private set; }
-        readonly IHttpSpooler Spooler;
-        private readonly ILogger<RatesService> Log;
-
-        private static int status = 1;
-        public static bool FisrtCall => Interlocked.Exchange(ref status, 0) > 0;
-        public static ConcurrentDictionary<string, RateToUsd> Dict =
-                new ConcurrentDictionary<string, RateToUsd>
-                            (StringComparer.OrdinalIgnoreCase);
-        public int MaxReadDelaySec { get; init; } = 3600;
-
-
-        public RatesService(HttpClient _httpClient,
-                            IHttpSpooler _spooler,
-                            ToUsdContext context,
-                            ILogger<RatesService> logger)//,
-                                                         //   IConfiguration config)
+        public HttpClient PrepareHttpClient(HttpClient _httpClient)
         {
             _httpClient.DefaultRequestHeaders.Add("Accept", "application/json,text/json,*/*");
             _httpClient.DefaultRequestHeaders.Add("User-Agent", "that2dollar");
-            Spooler = _spooler;
-            Client = _httpClient;
-            Client.DefaultRequestHeaders.Accept
+            _httpClient.DefaultRequestHeaders.Accept
                   .Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            Client.DefaultRequestHeaders.Accept
+            _httpClient.DefaultRequestHeaders.Accept
                   .Add(new MediaTypeWithQualityHeaderValue("application/html"));
-            Client.DefaultRequestHeaders.Accept
+            _httpClient.DefaultRequestHeaders.Accept
                   .Add(new MediaTypeWithQualityHeaderValue("application/text"));
-
-            Log = logger;
-            Context = context;
-
+            return _httpClient;
         }
 
+        public SpoolItem<RateToUsd> ToSpoolItem(RateToUsd rate)
+        {
+
+            return new SpoolItem<RateToUsd>()
+            {
+                Key = rate.code,
+                Data = rate,
+                ActualUntil = rate.lastRefreshed.AddSeconds(MaxReadDelaySec)
+
+            };
+        }
+        private static int status = 1;
+        public static bool FisrtCall => Interlocked.Exchange(ref status, 0) > 0;
         public async Task TryInit()
         {
             if (!FisrtCall) return;
@@ -146,10 +147,9 @@ namespace that2dollar.Services
             {
                 var list = DefaultCurrencyPairs.Split(",").ToList();
 
-                await Context.Rates.ForEachAsync(p =>
+                await Context.Rates.ForEachAsync(rate =>
                 {
-                    list.Add(p.code);
-                    Dict.TryAdd(p.code, p);
+                    Spooler.TryAddValue(rate.code, rate);
                 });
 
             }
@@ -159,29 +159,25 @@ namespace that2dollar.Services
             }
         }
 
-        public RateToUsd[] Rates => Dict.Values.ToArray();
+        public RateToUsd[] AllData => Spooler.AllData;
 
 
-        public async Task<RateToUsd> GetRatio(string code)
+        public async Task<RateToUsd> GetItem(string code)
         {
             try
             {
                 await TryInit();
 
 
-                TestCode("code", ref code);
+                AssertCode("code", ref code);
 
-                RateToUsd rate = null;
-                DateTime dt0 = DateTime.Now;
-                double ms = 0;
-                bool b = false;
-                if (!(b = Dict.TryGetValue(code, out rate)) ||
-                    (ms = (dt0 - rate.stored).TotalSeconds) > MaxReadDelaySec)
+                RateToUsd rate= Spooler.TryGetValue(code);
+                if (rate == null)
                 {
                     rate = await RetrieveFromHttp(code);
                     if (rate != null)
                     {
-                        Dict.AddOrUpdate(code, rate, (code, oldValue) => rate);
+                         Spooler.TryAddValue(code, rate);
 
                         ToStore(rate);
                     }
@@ -201,11 +197,11 @@ namespace that2dollar.Services
             {
                 await TryInit();
 
-                TestCode("from", ref from);
-                TestCode("to", ref to);
+                AssertCode("from", ref from);
+                AssertCode("to", ref to);
 
                 RateToUsd[] arr = await Task.WhenAll<RateToUsd>(
-                       GetRatio(from), GetRatio(to));
+                       GetItem(from), GetItem(to));
                 if (arr == null || arr.Length != 2 || arr[0] == null || arr[1] == null)
                 {
                     return null;
@@ -226,16 +222,15 @@ namespace that2dollar.Services
                 return null;
             }
         }
-        public async Task<bool> Remove(string code)
+        public async Task<bool> RemoveItem(string code)
         {
             try
             {
-                TestCode("code", ref code);
-                RateToUsd rate;
-                Dict.Remove(code, out rate);
+                AssertCode("code", ref code);
+                RateToUsd rate =  Spooler.TryRemove(code);
+                bool b = false;
 
-                var b = Context.Rates.Any(p => p.code == code);
-                if (b)
+                if (b = (rate != null))
                 {
                     Log.LogInformation($"DELETE RateToUsd {rate}");
 
@@ -257,6 +252,10 @@ namespace that2dollar.Services
 
         private bool ToStore(RateToUsd rate)
         {
+            if(!TO_STORE)
+            {
+                return true;
+            }
             lock (_lockStore)
             {
                 var b = Context.Rates.Any(p => p.code.ToUpper() == rate.code.ToUpper());
@@ -276,7 +275,7 @@ namespace that2dollar.Services
             }
         }
 
-        void TestCode(string name, ref string str)
+        void AssertCode(string name, ref string str)
         {
             if (string.IsNullOrWhiteSpace(str))
             {
@@ -285,29 +284,28 @@ namespace that2dollar.Services
             str = str.ToUpper();
         }
 
-        public string ConvertorName =>
-              "https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE";
-  
-        private async Task<RateToUsd> RetrieveFromHttp(string code)
+        public string ConvertorUrl => //TBD from env
+              "https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency=USD&to_currency=";
+
+        public async Task<RateToUsd> RetrieveFromHttp(string code)
         {
 
             try
             {
-                string url = ConvertorName 
-                           + "&from_currency=USD&to_currency=" + code;
+                string url = ConvertorUrl + code;
 
                 string url0 = url + "&apikey=" + alphavantage_secret_0;
 
-                RatesServiceDecoder decoder = new RatesServiceDecoder(code, Log);
+               
 
-                RateToUsd body = await Spooler.GetHttp(Client, url0, decoder, MaxReadDelaySec) as RateToUsd;
+                RateToUsd body = await Spooler.GetHttpWithSpool(code, url0,  MaxReadDelaySec, DecodeBody);
 
-                if (body == null )
+                if (body == null)
                 {
                     string url1 = url + "&apikey=" + alphavantage_secret_1;
-      
-                    body = await Spooler.GetHttp(Client, url1, decoder, MaxReadDelaySec) as RateToUsd;
-                 }
+
+                    body = await Spooler.GetHttpWithSpool(code, url1, MaxReadDelaySec,DecodeBody);
+                }
 
                 return body;
             }
@@ -320,9 +318,9 @@ namespace that2dollar.Services
 
 
         }
-     
 
-   
+
+
         public void Dispose()
         {
             //TBD ???   if(Context.opened)

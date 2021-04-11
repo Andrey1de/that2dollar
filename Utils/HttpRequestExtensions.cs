@@ -8,6 +8,31 @@ using System.Threading.Tasks;
 
 namespace that2dollar.Utils
 {
+    public static class HttpClientHelpers
+    {
+        public static  async Task<string> GetHttpStringAsync(this HttpClient client, string url)
+        {
+            string jsonBody = "";
+            using (var request = new HttpRequestMessage
+            {
+                Method = HttpMethod.Get,
+                RequestUri = new Uri(url)
+            })
+            {
+                using (var response = await client.SendAsync(request))
+                {
+
+                    response.EnsureSuccessStatusCode();
+                    jsonBody = await response.Content.ReadAsStringAsync();
+                }
+            }
+
+
+            return jsonBody;
+
+        }
+
+    }
     public static class RequestTranscriptHelpers
     {
         public static HttpRequestMessage ToHttpRequestMessage(this HttpRequest req)
@@ -50,9 +75,6 @@ namespace that2dollar.Utils
             return msg;
         }
     }
-
-
-
     public static class ResponseTranscriptHelpers
     {
         public static async Task FromHttpResponseMessage(this HttpResponse resp, HttpResponseMessage msg)

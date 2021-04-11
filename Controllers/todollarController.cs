@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -18,16 +20,23 @@ namespace that2dollar.Controllers
     public class todollarController : ControllerBase
     {
 
-        IRatesService Srv;
+        readonly IRatesService Srv;
+      //  readonly HttpClient Client;
+
         //ToUsdContext Context;
-        public todollarController(//ToUsdContext context,
+        public todollarController(
             IRatesService srv)
         {
+             
+          //  Client = PrepareHttpClient(_httpClient); ;
             Srv = srv;// = context;
-                      // Srv.Context = Context = context;
+          //  Srv.Client = Client;//Important those client would be used for service
+
+
             Task.Run(srv.TryInit).Wait();
         }
 
+   
         /// <summary>
         /// Get a list of the of currencies to USD ratio 
         /// </summary>
@@ -36,7 +45,7 @@ namespace that2dollar.Controllers
         [HttpGet]
         public ActionResult<RateToUsd[]> GetRates()
         {
-            return Ok(Srv.Rates);
+            return Ok(Srv.AllData);
         }
 
         /// <summary>
@@ -49,7 +58,7 @@ namespace that2dollar.Controllers
         public async Task<ActionResult<RateToUsd>> GetRateToUsd(string code)
         {
             code = (code ?? "").ToUpper();
-            var rateToUsd = await Srv.GetRatio(code);
+            var rateToUsd = await Srv.GetItem(code);
 
             if (rateToUsd == null)
             {
@@ -90,7 +99,7 @@ namespace that2dollar.Controllers
         public async Task<IActionResult> DeleteRateToUsd(string code)
         {
             code = (code ?? "").ToUpper();
-            var b = await Srv.Remove(code);
+            var b = await Srv.RemoveItem(code);
             if (!b)
             {
                 return NotFound();

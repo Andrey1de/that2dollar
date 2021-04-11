@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Concurrent;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading;
@@ -11,50 +12,115 @@ using that2dollar.Utils;
 
 namespace that2dollar.Services
 {
-    public interface ISpoolDecoder
+    public class SpoolItem<TItem> where TItem : class
     {
-        public object DecodeBody(string data);
-    }
-    internal class SpoolItem
-    {
-        internal string Url;
-        internal object Data;
-        internal DateTime ActualUntil { get; set; }
-
+        public string Key;
+        public TItem Data = default;
+        public DateTime ActualUntil { get; set; }
     }
 
-    public interface IHttpSpooler
+    public abstract class SpoolDecoder<T>
     {
-        public Task<object> GetHttp(HttpClient client ,string url, ISpoolDecoder decoder, int howLongToStoreSec);
-
+        public abstract T Decode(string key,string jsonBody);
 
     }
-    public class HttpSpooler : IHttpSpooler
+
+
+    public class HttpSpooler<T> where T : class
     {
         //public static readonly HttpSpooler Single = new HttpSpooler();
         //readonly HttpClient Client;
-        readonly ILogger<HttpSpooler> Log;
+        readonly ILogger Log;
+        readonly HttpClient Client;
 
-        static ConcurrentDictionary<string, SpoolItem> Dict =
-            new ConcurrentDictionary<string, SpoolItem>(StringComparer.OrdinalIgnoreCase);
+        static Lazy<ConcurrentDictionary<string, SpoolItem<T>>> DictLazy =
+            new Lazy<ConcurrentDictionary<string, SpoolItem<T>>>(
+                new ConcurrentDictionary<string, SpoolItem<T>>(StringComparer.OrdinalIgnoreCase));
+       
+        public ConcurrentDictionary<string, SpoolItem<T>> Dict => DictLazy.Value;
 
-        public HttpSpooler( ILogger<HttpSpooler> _logger)
+             Func<T, SpoolItem<T>> ToSpoolItem;
+
+        public HttpSpooler(ILogger _logger, HttpClient _client,
+             Func<T, SpoolItem<T>> _toSpoolItemSpoler)
         {
-           // Client = _httpClient;
+            // Client = _httpClient;
             Log = _logger;
-         }
+            Client = _client;
+            ToSpoolItem = _toSpoolItemSpoler;
+        }
 
-        public async Task<object> GetHttp(HttpClient client, string url, ISpoolDecoder decoder, int howLongToStoreSec)
+        public T[] AllData => Dict.Values.Select(p => p.Data).ToArray();
+        public T TryAddValue(string key,T p)
         {
-            object ret = null;
+            SpoolItem<T> item =  Dict.AddOrUpdate(key, item => ToSpoolItem(p), (item, old) => ToSpoolItem(p));
+             return item.Data;
 
-            SpoolItem item = Dict.AddOrUpdate(url,
-                (_url) =>
+        }
+        public T TryGetValue(string key)
+        {
+            SpoolItem<T> item = null;
+            if (Dict.TryGetValue(key, out item))
+            {
+                if (item.ActualUntil >= DateTime.Now)
+                {
+                    Dict.TryRemove(key,out item);
+                    item = null;
+                }
+            }
+
+            return (item != null) ? item.Data : null;
+
+        }
+        public T TryRemove(string key)
+        {
+            
+            SpoolItem<T> spool;
+            return (Dict.TryRemove(key, out spool)) ?
+                spool.Data : null;
+       
+        }
+
+      
+        public async Task<T> GetHttpWithSpool(string key, string url,  int howLongToStoreSec, 
+                Func<string,string,T> decoder)
+        {
+            T data = null;
+            try
+            {
+                SpoolItem<T> item = TrySpool(key, url, howLongToStoreSec);
+                if (item.Data != null)
+                {
+                    return item.Data;
+
+                }
+                string jsonBody = await Client.GetHttpStringAsync(url);
+
+
+
+                item.Data =  decoder(key,jsonBody);
+
+                return item.Data;
+            }
+            catch (Exception ex)
+            {
+
+                Log.LogError(ex.StackTrace);
+                return null; 
+            }
+            return null;
+
+        }
+ 
+        private SpoolItem<T> TrySpool(string key , string url, int howLongToStoreSec )
+        {
+            SpoolItem<T> item = DictLazy.Value.AddOrUpdate(key,
+                (key) =>
                 {
                     // Create New Instance for Spooler
-                    return new SpoolItem()
+                    return new SpoolItem<T>()
                     {
-                        Url = url,
+                        Key = key,
                         ActualUntil = DateTime.Now.AddSeconds(howLongToStoreSec),
                         Data = null
                     };
@@ -70,30 +136,8 @@ namespace that2dollar.Services
                     return _item;
                 }
                 );
-
-            if (item.Data != null)
-                return item.Data;
-
-            using (var request = new HttpRequestMessage {
-                                                            Method = HttpMethod.Get,
-                                                            RequestUri = new Uri(url)
-                                                        })
-            {
-                using (var response = await client.SendAsync(request))
-                {
-
-                    response.EnsureSuccessStatusCode();
-                    string jsonBody = await response.Content.ReadAsStringAsync();
-                    item.Data = ret = decoder.DecodeBody(jsonBody);
-
-                }
-            }
-
-
-            return item.Data;
-
+           return item;
         }
-
 
     }
 }

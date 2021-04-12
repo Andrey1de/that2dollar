@@ -14,7 +14,7 @@ namespace that2dollar.Services
         public T[] AllData { get; }
         public  Task<T> GetItem(string code);
         public  Task<bool> RemoveItem(string code);
-        public Task<T> RetrieveFromHttp(string code);
+        //public Task<T> RetrieveFromHttp(string code);
 
         public Task TryInit();
         public T DecodeBody(string code, string jsonBody);

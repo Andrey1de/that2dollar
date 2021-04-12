@@ -11,32 +11,32 @@ namespace that2dollar.Controllers
     /// </summary>
     [Route("api/[controller]")]
     [ApiController]
-    public class todollarController : ControllerBase
+    public class CurrencyController : ControllerBase
     {
 
         readonly IRatesService Srv;
-      //  readonly HttpClient Client;
+        //  readonly HttpClient Client;
 
         //ToUsdContext Context;
-        public todollarController(
+        public CurrencyController(
             IRatesService srv)
         {
-             
-          //  Client = PrepareHttpClient(_httpClient); ;
+
+            //  Client = PrepareHttpClient(_httpClient); ;
             Srv = srv;// = context;
-          //  Srv.Client = Client;//Important those client would be used for service
+                      //  Srv.Client = Client;//Important those client would be used for service
 
 
             Task.Run(srv.TryInit).Wait();
         }
 
-   
+
         /// <summary>
         /// Get a list of the of currencies to USD ratio 
         /// </summary>
         /// <returns></returns>
         // GET: api/RateToUsd
-        [HttpGet]
+        [HttpGet("RateToUsd/")]
         public ActionResult<RateToUsd[]> GetRates()
         {
             return Ok(Srv.AllData);
@@ -48,7 +48,7 @@ namespace that2dollar.Controllers
         /// <param name="code"> currency Code (ILS)</param>
         /// <returns></returns>
         // GET: api/RateToUsd/5
-        [HttpGet("{code}")]
+        [HttpGet("RateToUsd/{code}")]
         public async Task<ActionResult<RateToUsd>> GetRateToUsd(string code)
         {
             code = (code ?? "").ToUpper();
@@ -68,7 +68,7 @@ namespace that2dollar.Controllers
         /// <param name="from"> currency Code (EUR)</param>
         /// <param name="to"> currency Code (JPY)</param>
         /// <returns></returns>
-        [HttpGet("{from}/{to}")]
+        [HttpGet("ToUsd/{from}/{to}")]
         public async Task<ActionResult<FromTo>>
                 GetRatioForPair(string from, string to)
         {
@@ -89,12 +89,12 @@ namespace that2dollar.Controllers
         /// </summary>
         /// <param name="code"> currency Code - 3 letters for example EUR</param>
         /// <returns></returns>
-        [HttpDelete("{code}")]
-        public async Task<IActionResult> DeleteRateToUsd(string code)
+        [HttpDelete("RateToUsd/{code}")]
+        public  ActionResult DeleteRateToUsd(string code)
         {
             code = (code ?? "").ToUpper();
-            var b = await Srv.RemoveItem(code);
-            if (!b)
+            var item =  Srv.RemoveItem(code);
+            if (item == null)
             {
                 return NotFound();
             }

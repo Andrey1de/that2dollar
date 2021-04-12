@@ -25,9 +25,10 @@ namespace that2dollar.Services
         public override string ConvertorUrl =>
              "https://www.alphavantage.co/query?function=OVERVIEW&symbol=";
 
+        public override string GetKey(CompanyOverview item) => item.Symbol;
 
         public CompanyOverviewService(HttpClient _httpClient,
-                           ILogger<GlobalQuotesService> logger)
+                           ILogger<CompanyOverviewService> logger)
             : base(_httpClient, logger, "CompanyOverview")
         {
 
@@ -78,16 +79,18 @@ namespace that2dollar.Services
             return null;
         }
 
-        public override SpoolItem<CompanyOverview> ToSpoolItem(CompanyOverview item)
-        {
-            return new SpoolItem<CompanyOverview>()
-            {
-                Key = item.Symbol,
-                Data = item,
-                ActualUntil = DateTime.Now.AddSeconds(MaxReadDelaySec)
+        //public override SpoolItem<CompanyOverview> ToSpoolItem(CompanyOverview item)
+        //{
+        //    return new SpoolItem<CompanyOverview>()
+        //    {
+        //        Key = item.Symbol,
+        //        Data = item,
+        //        ActualUntil = DateTime.Now.AddSeconds(MaxReadDelaySec)
 
-            };
-        }
+        //    };
+        //}
+    
+        
     }
 
 

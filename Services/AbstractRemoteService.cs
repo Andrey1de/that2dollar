@@ -2,7 +2,6 @@
 using System;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -88,7 +87,7 @@ namespace that2dollar.Services
                 return null;
             }
         }
-        public virtual async Task<bool> RemoveItem(string key)
+        public async virtual Task<bool> RemoveItem(string key)
         {
             try
             {
@@ -101,6 +100,7 @@ namespace that2dollar.Services
                     Log.LogInformation($"DELETE {ClassName} {item}");
 
                 }
+                await Task.Delay(0);
                 return b;
 
             }
@@ -113,7 +113,7 @@ namespace that2dollar.Services
         }
 
 
-        public virtual async Task<T> RetrieveFromHttp(string key)
+        protected virtual async Task<T> RetrieveFromHttp(string key)
         {
 
             try
@@ -141,20 +141,22 @@ namespace that2dollar.Services
 
         }
 
-        public abstract SpoolItem<T> ToSpoolItem(T item);
-        //{
-        //    return new SpoolItem<T>()
-        //    {
-        //        Key = rate.Symbol,
-        //        Data = rate,
-        //        ActualUntil = DateTime.Now.AddSeconds(MaxReadDelaySec)
+        public virtual SpoolItem<T> ToSpoolItem(T item)
+        {
+            return new SpoolItem<T>()
+            {
+                Key = GetKey(item),
+                Data = item,
+                ActualUntil = DateTime.Now.AddSeconds(MaxReadDelaySec)
 
-        //    };
-        //}
+            };
+        }
+
+        public abstract string GetKey(T item);//item=>item.Symbol;
 
 
         static int status = 1;
-        public static bool FisrtCall => Interlocked.Exchange(ref status, 0) > 0;
+        protected static bool FisrtCall => Interlocked.Exchange(ref status, 0) > 0;
         public virtual async Task TryInit()
         {
             await Task.Delay(0);
@@ -164,20 +166,5 @@ namespace that2dollar.Services
 
 
 
-        //static Type typeT = null;
-        //static PropertyInfo[] propsT = [];
-        //protected T AppendObject(T that, object o)
-        //{
-        //    if (typeT == null)
-        //    {
-        //        typeT = that.GetType();
-        //        propsT = typeT.GetProperties();
-        //    }
-        //    foreach (PropertyInfo propertyInfo in propsT)
-        //    {
-        //        // do stuff here
-        //    }
-        //    return T;
-        //}
-        }
     }
+}

@@ -76,7 +76,7 @@ namespace that2dollar.Services
         {
             
             SpoolItem<T> spool;
-            return (Dict.TryRemove(key, out spool)) ?
+            return Dict.TryRemove(key, out spool) ?
                 spool.Data : null;
        
         }

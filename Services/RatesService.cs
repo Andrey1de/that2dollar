@@ -19,16 +19,6 @@ namespace that2dollar.Services
     public interface IRatesService : ISpooledService<RateToUsd>
     {
         public  Task<FromTo> GetRatioForPair(string from, string to);
-        //public HttpClient Client { get;  }
-
-        //public string ConvertorUrl { get; }
-        //public Task TryInit();
-        //public RateToUsd[] AllData { get; }
-        //public Task<RateToUsd> GetItem(string Code);
-        //public Task<FromTo> GetRatioForPair(string from, string to);
-        //public HttpClient PrepareHttpClient(HttpClient _httpClient);
-
-        //public Task<bool> RemoveItem(string Code);
     }
     public class RatesService : IRatesService, IDisposable
     {
@@ -324,7 +314,7 @@ namespace that2dollar.Services
             //  Context.Dispose();
         }
 
-
+        
     }
 
 

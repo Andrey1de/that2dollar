@@ -10,6 +10,7 @@ using System;
 using System.IO;
 using System.Reflection;
 using System.Text.Json;
+using that2dollar.Models;
 
 namespace that2dollar
 {
@@ -43,6 +44,8 @@ namespace that2dollar
           //  services.AddScoped<IHttpSpooler, HttpSpooler>();
             services.AddScoped<IRatesService, RatesService>();
             services.AddScoped<IGlobalQuotesService, GlobalQuotesService>();
+            services.AddScoped<ICompanyOverviewService, CompanyOverviewService>();
+            services.AddScoped<ICompanyBestMatchesService, CompanyBestMatchesService>();
             
 
             services.AddControllers().AddJsonOptions(option =>

@@ -19,6 +19,7 @@ namespace that2dollar.Services
         public override string ConvertorUrl =>
             "https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=";
 
+        public override string GetKey(GlobalQuote item) => item.Symbol;
 
         public GlobalQuotesService(HttpClient _httpClient,
                            ILogger<GlobalQuotesService> logger)
@@ -95,19 +96,19 @@ namespace that2dollar.Services
             return ret;
         }
 
-     
 
+   
 
-        public override SpoolItem<GlobalQuote> ToSpoolItem(GlobalQuote item)
-        {
-            return new SpoolItem<GlobalQuote>()
-            {
-                Key = item.Symbol,
-                Data = item,
-                ActualUntil = DateTime.Now.AddSeconds(MaxReadDelaySec)
+        //public override SpoolItem<GlobalQuote> ToSpoolItem(GlobalQuote item)
+        //{
+        //    return new SpoolItem<GlobalQuote>()
+        //    {
+        //        Key = item.Symbol,
+        //        Data = item,
+        //        ActualUntil = DateTime.Now.AddSeconds(MaxReadDelaySec)
 
-            };
-        }
+        //    };
+        //}
 
 
     }

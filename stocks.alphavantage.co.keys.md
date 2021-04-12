@@ -35,24 +35,7 @@ andrey1yalta@gmail.com
 {
   "Error Message": "the parameter apikey is invalid or missing. Please claim your free API key on (https://www.alphavantage.co/support/#api-key). It should take less than 20 seconds."
 }
-## CURRENCY_EXCHANGER
-// 20210406111602
-## https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency=USD&to_currency=JPY&apikey=55Y1508W05UYQN3G
 
-{
-"Global Quote": {
-		"01. symbol": "IBM",
-		"02. open": "133.7600",
-		"03. high": "133.9300",
-		"04. low": "132.2700",
-		"05. price": "133.2300",
-		"06. volume": "4074161",
-		"07. latest trading day": "2021-04-01",
-		"08. previous close": "133.2600",
-		"09. change": "-0.0300",
-		"10. change percent": "-0.0225%"
-	}
- }
 # Company Overview
 https://www.alphavantage.co/query?function=OVERVIEW&symbol=IBM&apikey=3MEYVIGY6HV9QYMI
 {
@@ -134,7 +117,7 @@ https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=IBM&apikey=3MEYVI
         "10. change percent": "-0.0225%"
     }
 }
-# Search Endpoint
+# Search Endpoint OF COMPANY
 https://www.alphavantage.co/query?function=SYMBOL_SEARCH&keywords=tesco&apikey=3MEYVIGY6HV9QYMI
 {
     "bestMatches": [
@@ -205,7 +188,11 @@ https://www.alphavantage.co/query?function=SYMBOL_SEARCH&keywords=tesco&apikey=3
             "9. matchScore": "0.7143"
         }
     ]
-    #http://api.marketstack.com/v1/eod?access_key=d478360520cff2a346690b3b0ffad9e5&symbols=AAPL
+ }
+
+
+# OPTIONS
+## http://api.marketstack.com/v1/eod?access_key=d478360520cff2a346690b3b0ffad9e5&symbols=AAPL
     {
     "pagination": {
         "limit": 100,
